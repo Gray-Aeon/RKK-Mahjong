@@ -1,0 +1,6 @@
+function cleanUp()
+AllObjects = getObjectsWithTag("MahjongTile")
+for _,Tiles in ipairs(AllObjects) do
+self.putObject(Tiles)
+end
+end
