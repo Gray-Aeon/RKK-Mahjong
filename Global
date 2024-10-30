@@ -1,0 +1,1980 @@
+--                 RKK Mahjong V.2.0                                                                                  @@@
+--                                                                                                  @@@
+--                                                                                                @@@@
+--                                                                                               @@@@
+--                                                                                              @@@@
+--                                                                                             @@@@
+--             _____  _  ___  __  __  __       _     _                                        @@@@   @@
+--            |  __ \| |/ / |/ / |  \/  |     | |   (_)                                      @@@@  @@@
+--            | |__) | ' /| ' /  | \  / | __ _| |__  _  ___  _ __   __ _                    @@@  @@@@
+--            |  _  /|  < |  <   | |\/| |/ _` | '_ \| |/ _ \| '_ \ / _` |                  @@@  @@@@
+--            | | \ \| . \| . \  | |  | | (_| | | | | | (_) | | | | (_| |                 @@@@ @@@@
+--            |_|  \_\_|\_\_|\_\ |_|  |_|\__,_|_| |_| |\___/|_| |_|\__, |                @@@@ @@@@
+--                                                 _/ |             __/ |               @@@@ @@@@   @@@
+--                 Ronning in the 20s             |__/             |___/               @@@@@@@@   @@@@
+--                                                                                    @@@@@@@@  @@@@@
+--                                                                                   @@@@@@@@  @@@@@
+--                                                                                  @@@@@@@  @@@@@
+--                                             %                                   @@@@@@@  @@@@
+--                                          %%                                     @@@@@@ @@@@
+--                                       %%%                                      @@@@@@@@@@@
+--                                     %%%%%                                     @@@@@@@@@@@
+--                                  %%%   %%%                                    @@@@@@@@@@
+--                                %%%      %%%                                  @@@@@@@@@@
+--                              %%%%%       %%%                                 @@@@@@@@@
+--                            %%%. %%%      %%%                                @@@@@@@@@
+--                          .%%%     %%%     %%%                               @@@@@@@@
+--                         %%%%       %%%    %%%                              @@@@@@@@
+--                       %%%%%%%%%%%%%%%%%   %%%                              @@@@@@@
+--                      %%%%%,       ,%%%%%  %%%%                            @@@@@@@
+--                    %%%%                %%%%%%%     @@@@@@                 @@@@@@
+--     %%%%%%%*      %%%       %%%%*        %%%%%@@@@@@@@@@@@               @@@@@@@
+--           %%%%%%%%%%      %%%   %%        %%% @@@@     @@@               @@@@@@
+--                 %%%%      /%%  ,%%        @@@  @@@     @@@               @@@@@@
+--        .###%%%%%%%%%%       .%%%%         @@   .@@     @@@              @@@@@@
+--                %%%%%%%,                  @@@     @@@    @@@              @@@@@@
+--                     .%%%               @@@@@     @@@@@@@@@              @@@@@@
+--                        @@@          .@@@   @@@@@@@@@@  @@@ .@@@@@@@@@@@@@@@@@    @@@@@@
+--                          @@@       @@@@#  @@@@@,   @@ @@@@@@*       ,@@@@@@@@@@@@@@@@@@@
+--                            @@     @@  @@@@@  @@@  .@@@%           .@@@@@@@@          @@@
+--                            @@*   @@ @@@@@@@    @@@@        (@@@@@@@    @@@          (@@@
+--                           @@@    @@@@     @@@@@@         @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+--                          @@@      @@@@@@@@@@              @@          @@@            @@@
+--                         @@@                                @@@@@@@@@& @@@            @@@
+--                         @@@                             @@@          @@@@@@@@@@@@@@@@@@
+--                         @@@                               @@@@@@@%   @@           .@@@@
+--                          @@@                                     #@@@@@@@@,         @@#
+--                           @@@                         @@@@@       @@@  ,@@@@@@@@@@@@@
+--                              @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@            %@@@
+--                                            ,%%                    %%@@@@@@@@@@@((@@@@
+--                                             %%%                    %%%         &&@&
+--                                              %%%%%                  %%%%%
+--                                              %%%%                  %%%
+--                                              %%%                  %%%
+--                                             %%%                  %%%
+--                                            %%%    ,             %%%%%%  ,
+--                                            %%% %%.         . %%%%%%%% %%.
+--                                       ..%%%.%%%%%%%%(  .%%%%%%
+--                                 %%%%.. %%%           %%.  %%%
+--                                      %%(
+
+
+--[[Original wallbuilding script written by eviljuzu--]]
+--[[Original hand sorting script written by Xtal Lattice--]]
+--[[Various edits made by Gray Aeon (I don't know shit about coding, don't expect good code. It does what it's supposed to do (I think) and thats what counts. I also made a few notes to help noobs like me to understand whats going on better)--]]
+
+-- Table of contents (May not be up to date)
+-- Global variables
+-- onLoad
+-- chooseLoser
+-- InputTest
+-- payTenbou
+-- enableDestroy
+-- onObjectDestroy
+-- sortTenbou
+-- onObjectEnterZone
+-- onObjectLeaveZone
+-- UpdateRemainingTiles
+-- UpdateScoreDisplay
+-- makeOneWall
+-- makeWalls
+-- TurnsAndSeats
+-- UpdateSeatsAndRounds
+-- UpdateScore
+-- getOrderedPlayers
+-- VisibilityUI
+-- showZones
+-- printhand
+-- Hand sorting scripts
+
+--  =======================================================
+--            Global variables
+--  =======================================================
+
+tileBag = {}                                                -- object for tile bag
+tileBagGuid = "009fe9"                    -- GUID of the tile bag
+
+Autotable = {}
+AutotableGuid = "698663"
+
+TenbouBag = {
+    "100",
+    "1000",
+    "5000",
+    "10000",
+    "Special"
+    }
+
+TenbouBagGuid = {
+    ["100"] = "6f6d8d",
+    ["1000"] = "03ddde",
+    ["5000"] = "9119f1",
+    ["10000"] = "417ab2",
+    ["Special"] = "be2b01"
+    }
+
+dieA = {}
+dieB = {}
+dieAGuid = {"81c664"}
+dieBGuid = {"27b143"}
+
+--  =======================================================
+--            onLoad
+--  =======================================================
+
+function onload()                                 -- onLoad is executed when game finished loading
+    tileBag = getObjectFromGUID(tileBagGuid)                -- Find the references to objects in the game
+    tileBag.lock()                      -- Change various attributes of the object to stop it from interfering with the game
+    tileBag.setPosition({x=0, y=-.8, z=0})               -- In case the object needs to be accessed, change y to a higher number
+    tileBag.setInvisibleTo({})
+    tileBag.interactable = false
+
+    Autotable = getObjectFromGUID(AutotableGuid)
+    Autotable.lock()
+    Autotable.setPosition({x=0, y=-1, z=0})
+    Autotable.interactable = false
+
+
+    for a, b in pairs(TenbouBag) do
+        TenbouBag[b] = getObjectFromGUID(TenbouBagGuid[b])
+    end
+
+    local y = -2
+    for i = 1, 5 do
+        TenbouBag[TenbouBag[i]].setPosition({x=0, y=y, z=0})
+        TenbouBag[TenbouBag[i]].setInvisibleTo({})
+        TenbouBag[TenbouBag[i]].lock()
+        TenbouBag[TenbouBag[i]].interactable = false
+        y = y - 1
+    end
+
+    Player["White"].changeColor("Blue")      -- Because I want to be Blue.
+
+    randomLoad = 1                      -- 1 = random Dealer
+    random = randomLoad          -- randomLoad exists to enable changing random back to the base value when starting a new game
+    newGame = 1            -- onload = 1, gets changed to 0 when the game starts
+    East = 0                                                -- Initial values, will get changed when the game starts
+    South = 0
+    West = 0
+    North = 0
+    Round = 0
+    Honba = -1
+    destroytrue = 0           -- If 1: Destroying Tenbou will exchange them for an equal amount of lower value sticks. Needed for sortTenbou
+    basePoints = 25000                    -- Doesn't affect dealt Tenbou, is just there to make the difference in points to the last round 0
+    automate = 0                                            -- If 1: Deals tiles after building walls
+    useDragonRounds = 1                                     -- If 1: Will advance the game to Dragon rounds after the last North round has been played.
+
+end
+
+--  =======================================================
+--            searchTile
+--  =======================================================
+
+function searchTile(player, value, id)         -- Allows to deal a specific tile to yourself. For teaching purposes only, don't cheat. (Well, it would be very noticable anyways)
+
+    local ChooseReceiver = {        
+        ["0"] = {
+            ["Blue"] = "Blue",
+            ["Yellow"] = "Yellow",
+            ["Green"] = "Green",
+            ["Red"] = "Red"
+            },
+
+        ["-1"] = {
+            ["Blue"] = "Red",
+            ["Yellow"] = "Blue",
+            ["Green"] = "Yellow",
+            ["Red"] = "Green"
+            },
+        ["-2"] = {
+            ["Blue"] = "Yellow",
+            ["Yellow"] = "Green",
+            ["Green"] = "Red",
+            ["Red"] = "Blue"
+            },
+        ["-3"] = {
+            ["Blue"] = "Green",
+            ["Yellow"] = "Red",
+            ["Green"] = "Blue",
+            ["Red"] = "Yellow"
+            }
+        }
+
+    Receiver = (ChooseReceiver[TileReceiver][player.color])
+
+    local HandPositionSearch = {
+        ["Green"] = {x=0, y=3.4, z=-23},
+        ["Red"] = {x=23, y=3.4, z=0},
+        ["Blue"] = {x=0, y=3.4, z=23},
+        ["Yellow"] = {x=-23, y=3.4, z=0}
+        }
+
+    local HandRotationSearch = {
+        ["Green"] = {x=0, y=180, z=0},
+        ["Red"] = {x=0, y=90, z=0},
+        ["Blue"] = {x=0, y=0, z=0},
+        ["Yellow"] = {x=0, y=270, z=0}
+        }
+
+    for i=1, #TileTable do
+        if TileTable[i].getGMNotes() == tostring(id) then
+            TileTable[i].setPositionSmooth(HandPositionSearch[tostring(Receiver)], false, true)
+            TileTable[i].setRotation(HandRotationSearch[tostring(Receiver)])
+            table.remove(TileTable, i)
+            break
+        end
+        if i == #TileTable then
+            if TileTable[i].getGMNotes() ~= tostring(id) then
+                broadcastToColor("Tile not found", player.color)
+            end
+        end
+    end
+    Wait.frames(function()
+        sortHand(player)
+    end, 30)
+end
+
+--  =======================================================
+--            searchTileToggle
+--  =======================================================
+
+function searchTileToggle(player)
+    TileReceiver = "0"
+    if UI.getAttribute("tileSelectorUIA", "visibility") ~= player.color then
+        UI.setAttribute("tileSelectorUIA", "visibility", player.color)
+        UI.setAttribute("tileSelectorUIB", "visibility", player.color)
+        TileTable = getObjectsWithTag("MahjongTile")
+        else
+        UI.setAttribute("tileSelectorUIA", "visibility", "noone")
+        UI.setAttribute("tileSelectorUIB", "visibility", "noone")
+        TileTable = {}
+    end
+end
+
+--  =======================================================
+--            selectTileReceiverA+B
+--  =======================================================
+
+function selectTileReceiverA(player, altClick)
+    TileReceiver = "0"
+end
+
+function selectTileReceiverB(player, altClick)
+    TileReceiver = altClick
+end
+
+--  =======================================================
+--            chooseLoser
+--  =======================================================
+
+function chooseLoser(player)                                -- Starts the process of transferring Tenbou
+    Loser = player.color
+    UI.setAttribute("InputTest2","visibility",Loser)
+    UI.setAttribute("pay","visibility","noone")
+end
+
+--  =======================================================
+--            InputTest (Name subject to change)
+--  =======================================================
+
+function InputTest(p1, p2)                  -- Sets the debt of the player who started the function
+    debt = tonumber(p2)
+    local PayText = p2.." zahlen"
+    UI.setAttribute("TransferWindow","visibility",Loser)
+    UI.setAttribute("TransferWindow","text",PayText)
+    UI.setAttribute("TransferWindow","textColor","#d4af37")
+end
+
+--  =======================================================
+--            payTenbou
+--  =======================================================
+
+function payTenbou(player, altClick)                        -- Actual transferring process. Takes the values set by the previous functions, adds the receicing player and transfers Tenbou
+
+    SortPlayer = Loser
+    sortTenbou()
+
+    MouseInput = {
+        ["-1"] = {
+            ["Blue"] = "Red",
+            ["Yellow"] = "Blue",
+            ["Green"] = "Yellow",
+            ["Red"] = "Green"
+            },
+        ["-2"] = {
+            ["Blue"] = "Yellow",
+            ["Yellow"] = "Green",
+            ["Green"] = "Red",
+            ["Red"] = "Blue"
+            },
+        ["-3"] = {
+            ["Blue"] = "Green",
+            ["Yellow"] = "Red",
+            ["Green"] = "Blue",
+            ["Red"] = "Yellow"
+            }
+        }
+
+    Winner = tostring(MouseInput[tostring(altClick)][player.color])
+
+    TenbouZone = {                      -- define in onload?
+            ["Blue"] = "df72bc",
+            ["Yellow"] = "7ead1d",
+            ["Green"] = "abaf0d",
+            ["Red"] = "e6ac05", 
+            }
+
+    WinnerZone = TenbouZone[Winner]
+    LoserZone = getObjectFromGUID(TenbouZone[Loser])
+
+    local tableE = {}
+
+    local TotalPoints = 0
+
+    for k,v in pairs(LoserZone.getObjects()) do
+        if v.hasTag("Tenbou") then
+            local G = tonumber(v.getName())
+            TotalPoints = TotalPoints + G
+        end
+    end
+
+    if TotalPoints < debt then
+        TenbouBag["Special"].deal(1, Winner)
+        TenbouBag["Special"].deal(1, Loser)
+
+        local WinnerPosition = getObjectFromGUID(WinnerZone).getPosition()
+        local LoserPosition = LoserZone.getPosition()
+        print(LoserPosition.z)
+        
+        Wait.frames(function()
+
+            WinnerHand = Player[Winner].getHandObjects()
+            LoserHand = Player[Loser].getHandObjects()
+
+            for _,v in ipairs(WinnerHand) do
+                if v.getGMNotes() == "Special" then
+                    v.setName(debt)
+                    v.setPosition(WinnerPosition)
+                end
+            end
+
+            for _,v in ipairs(LoserHand) do
+                if v.getGMNotes() == "Special" then
+                    v.setName(-debt)
+                    v.setPosition(LoserPosition)
+                end
+            end
+
+            SortPlayer = Winner
+            sortTenbou()
+            SortPlayer = Loser
+            sortTenbou()
+        end, 28)
+
+        else
+
+        local StickValue = {
+            ["4"] = 100,
+            ["3"] = 1000,
+            ["2"] = 5000,
+            ["1"] = 10000
+            }
+
+        local StickTable = {
+            ["4"] = tableA,
+            ["3"] = tableB,
+            ["2"] = tableC,
+            ["1"] = tableD
+            }
+
+        for i=1, 4 do
+            if debt >= StickValue[tostring(i)] then
+                local TenbouDebt = math.floor(debt/StickValue[tostring(i)])
+                if TenbouDebt > #StickTable[tostring(i)] then
+                    TenbouDebt = #StickTable[tostring(i)]
+                end
+                if TenbouDebt > 0 then
+                    debt = debt - (TenbouDebt*StickValue[tostring(i)])
+                    for v=1, TenbouDebt do
+                        tableE[#tableE+1] = StickTable[tostring(i)][v]
+                    end
+                end     
+            end
+        end
+
+        local DealYPosition = 3
+        local DealPosition = getObjectFromGUID(WinnerZone).getPosition()
+        for i=1, #tableE do
+            tableE[i].setPosition({DealPosition.x, DealYPosition, DealPosition.z})
+            DealYPosition = DealYPosition + .2
+        end
+    end
+
+    UI.setAttribute("TransferWindow","visibility","noone")
+    UI.setAttribute("InputTest2","visibility","noone")
+
+    Wait.frames(function()
+        SortPlayer = Winner
+        sortTenbou()
+        SortPlayer = Loser
+        sortTenbou() 
+    end, 28)
+
+    UI.setAttribute("pay","visibility","")
+
+    if debt > 0 then
+        broadcastToAll(debt.." konnten nicht gezahlt werden")
+    end
+
+end
+
+--  =======================================================
+--            enableDestroy
+--  =======================================================
+
+function enableDestroy(player, altClick)                    -- Starts the process of sorting and/or exchanging Tenbou
+    if altClick == "-3" then
+        destroytrue = 1
+        else
+        destroytrue = 0
+    end
+    SortPlayer = player.color
+    sortTenbou()
+end
+
+--  =======================================================
+--            onObjectDestroy
+--  =======================================================
+
+function onObjectDestroy(object)                            -- Triggers when an object is destroyed. Currently only used for exchanging Tenbou. Errors may occur when deleting something else.
+    if destroytrue == 1 then 
+        local replace = tonumber(object.getName())
+        local replaceCount = 1
+        if replace == 10000 then
+            replaceCount = 2
+            elseif
+            replace == 5000 then
+            replaceCount = 5
+            elseif replace == 1000 then
+            replaceCount = 10
+        end
+
+        replace = tostring(replace/replaceCount)
+        TenbouBag[replace].deal(replaceCount, SortPlayer)
+        
+        Wait.frames(function()
+            destroytrue = 0
+        end, 28)
+
+        Wait.frames(function()
+            sortTenbou()
+        end, 28)
+        
+    end
+end
+
+--  =======================================================
+--            sortTenbou
+--  =======================================================
+
+function sortTenbou(player)         -- Actual Tenbou sorting function, always has to be called with SortPlayer = Color
+
+    TenbouZone = {
+        ["Blue"] = "df72bc",
+        ["Yellow"] = "7ead1d",
+        ["Green"] = "abaf0d",
+        ["Red"] = "e6ac05", 
+        }
+
+    local RotationValue = {
+        ["Blue"] = {0,270,0},
+        ["Yellow"] = {0,180,0},
+        ["Green"] = {0,90,0},
+        ["Red"] = {0,0,0},
+        }
+
+    PlayerRotation = RotationValue[SortPlayer]
+    local SortZone = TenbouZone[SortPlayer]
+
+    tableA = {}              -- Tables used for each kind of Tenbou. A=100, B=1000, C=5000, D=10000
+    tableB = {}
+    tableC = {}
+    tableD = {}
+
+    local PosX = 4.5            -- Works as intended currently, may change to define zones at one point. X and Z are getting switched depending on the player position.
+    local PosZ = 19.2                                 
+    local PosY = 0                         
+
+    local AllTenbou = getObjectFromGUID(SortZone).getObjects()
+    local HandTenbou = Player[SortPlayer].getHandObjects()
+
+    for _,v in ipairs(HandTenbou) do
+        if v.hasTag("Tenbou") then
+            table.insert(AllTenbou, v)
+        end
+        
+    end  
+
+    for i,obj in ipairs(AllTenbou) do
+        obj.setRotation(PlayerRotation)
+        if obj.getName() == "100" then
+            table.insert(tableA, obj)
+            elseif 
+            obj.getName() == "1000" then
+            table.insert(tableB, obj)
+            elseif
+            obj.getName() == "5000" then
+            table.insert(tableC, obj)
+            elseif
+            obj.getName() == "10000" then
+            table.insert(tableD, obj)
+            elseif
+            obj.getGMNotes() == "Special" then
+            table.insert(tableD, obj)
+        end
+    end
+
+    local Limit = 0
+
+    for _,obj in pairs(tableA) do                       -- Could probably fit all 4 loops in 1, but since it does it's job I'm going to let it be for now.
+        local ZonePosition = {                          -- Defines whether PosX, PosZ are x or z coordinates
+            ["Blue"] = {x = PosX, y = PosY, z = PosZ},
+            ["Yellow"] = {x = -PosZ, y = PosY,  z = PosX},
+            ["Green"] = {x = -PosX, y = PosY,  z = -PosZ},
+            ["Red"] = {x = PosZ, y = PosY,  z = -PosX}
+            }
+        obj.setPosition(ZonePosition[SortPlayer])
+        PosZ= PosZ-0.2
+        Limit = Limit+1
+        if Limit == 6 then
+            Limit = 0
+            PosZ = 19.2
+            PosY = PosY+.1
+        end
+    end
+
+    PosY = 0
+    Limit = 0
+    PosX = 1.5
+    PosZ = 19.2
+
+    for _,obj in pairs(tableB) do
+        local ZonePosition = {
+            ["Blue"] = {x = PosX, y = PosY, z = PosZ},
+            ["Yellow"] = {x = -PosZ, y = PosY,  z = PosX},
+            ["Green"] = {x = -PosX, y = PosY,  z = -PosZ},
+            ["Red"] = {x = PosZ, y = PosY,  z = -PosX}
+            }
+        obj.setPosition(ZonePosition[SortPlayer])
+        PosZ= PosZ-0.2
+        Limit = Limit+1
+        if Limit == 6 then
+            Limit = 0
+            PosZ = 19.2
+            PosY = PosY+.1
+        end
+    end
+
+    PosY = 0
+    Limit = 0
+    PosX = -1.5
+    PosZ = 19.2
+
+    for _,obj in pairs(tableC) do
+        local ZonePosition = {
+            ["Blue"] = {x = PosX, y = PosY, z = PosZ},
+            ["Yellow"] = {x = -PosZ, y = PosY,  z = PosX},
+            ["Green"] = {x = -PosX, y = PosY,  z = -PosZ},
+            ["Red"] = {x = PosZ, y = PosY,  z = -PosX}
+            }
+        obj.setPosition(ZonePosition[SortPlayer])
+        PosZ= PosZ-0.2
+        Limit = Limit+1
+        if Limit == 6 then
+            Limit = 0
+            PosZ = 19.2
+            PosY = PosY+.1
+        end
+    end
+
+    PosY = 0
+    Limit = 0
+    PosX = -4.5
+    PosZ = 19.2
+
+    for _,obj in pairs(tableD) do
+        local ZonePosition = {
+            ["Blue"] = {x = PosX, y = PosY, z = PosZ},
+            ["Yellow"] = {x = -PosZ, y = PosY,  z = PosX},
+            ["Green"] = {x = -PosX, y = PosY,  z = -PosZ},
+            ["Red"] = {x = PosZ, y = PosY,  z = -PosX}
+            }
+        obj.setPosition(ZonePosition[SortPlayer])
+        PosZ= PosZ-0.2
+        Limit = Limit+1
+        if Limit == 6 then
+            Limit = 0
+            PosZ = 19.2
+            PosY = PosY+.1
+        end
+    end
+end
+
+--  =======================================================
+--            onObjectEnterZone
+--  =======================================================
+
+function onObjectEnterZone(zone, object)                                                         -- Triggers updates to the point displays and the tile counter
+    if zone.hasTag("TenbouZone") then
+        if object.hasTag("Tenbou") then
+            local PColor = tostring(getObjectFromGUID(zone.guid).getName())
+            if Player[PColor].seated then
+                tempZoneGUID = zone.guid
+                UpdateScoreDisplay(PColor)
+            end
+        end
+    end
+    if zone.hasTag("TileZone") then
+        if object.hasTag("MahjongTile") then
+            CountCheck = {}
+            UpdateRemainingTiles()
+        end
+    end
+end
+
+--  =======================================================
+--            onObjectLeaveZone
+--  =======================================================
+
+function onObjectLeaveZone(zone, object)                                                         -- Triggers updates to the point displays and the tile counter
+    if zone.hasTag("TenbouZone") then
+        if object.hasTag("Tenbou") then
+            local PColor = tostring(getObjectFromGUID(zone.guid).getName())
+            if Player[PColor].seated then
+                tempZoneGUID = zone.guid
+                UpdateScoreDisplay(PColor)
+            end
+        end
+    end
+    if zone.hasTag("TileZone") then
+        if object.hasTag("MahjongTile") then
+            UpdateRemainingTiles()
+        end
+    end
+end
+
+--  =======================================================
+--            UpdateRemainingTiles
+--  =======================================================
+
+function UpdateRemainingTiles()
+    Count = {
+        getObjectFromGUID("20d422").getObjects(),
+        getObjectFromGUID("0d3dc5").getObjects(),
+        getObjectFromGUID("afc63d").getObjects(),
+        getObjectFromGUID("27a1c2").getObjects()
+        }
+
+    local TotalCount = {}
+    local CountCheck = {}
+
+    local T = "blank"
+    local G = "blank"
+    local B = "blank"
+    local U = "blank"
+    local J = "blank"
+
+    for i=1, 4 do
+        for _, obj in pairs(Count[i]) do
+            if not CountCheck[obj] then
+                CountCheck[obj] = true
+                table.insert(TotalCount, obj)
+            end
+        end
+    end
+
+    local Counter = #TotalCount - 14
+
+    if Counter >= 0 then
+        Counter = string.reverse(tostring(Counter))
+
+        if string.len(Counter) == 3 then
+            T = tostring(string.sub(Counter , 3 , 3).."x")
+            G = tostring(string.sub(Counter , 2 , 2).."x")
+            B = tostring(string.sub(Counter , 1 , 1).."x")
+            U = "blank"
+            J = "blank"
+            elseif string.len(Counter) == 2 then
+            T = "blank"
+            G = "blank"
+            B = "blank"
+            J = tostring(string.sub(Counter , 2 , 2).."x")
+            U = tostring(string.sub(Counter , 1 , 1).."x")
+            elseif string.len(Counter) == 1 then
+            T = "blank"
+            B = "blank"
+            U = "blank"
+            J = "blank"
+            G = tostring(string.sub(Counter , 1 , 1).."x")
+        end
+        else
+        T = "blank"
+        B = "blank"
+        U = "blank"
+        J = "blank"
+        G = "0x"
+    end
+
+    tileBag.UI.setAttribute("CountA", "image", B)
+    tileBag.UI.setAttribute("CountB", "image", G)
+    tileBag.UI.setAttribute("CountC", "image", T)
+    tileBag.UI.setAttribute("CountD", "image", J)
+    tileBag.UI.setAttribute("CountE", "image", U)
+
+end
+
+--  =======================================================
+--            UpdateScoreDisplay
+--  =======================================================
+
+function UpdateScoreDisplay(PColor)
+
+    local zoneObjects = getObjectFromGUID(tempZoneGUID).getObjects()
+
+    local TotalPoints = 0
+    for k,v in pairs(zoneObjects) do
+        if v.hasTag("Tenbou") then
+            local G = tonumber(v.getName())
+            TotalPoints = TotalPoints + G
+        end
+    end
+
+    Points = TotalPoints
+
+    TotalPoints = tostring(TotalPoints)
+    TotalPoints = string.reverse(TotalPoints)
+
+    if string.len(TotalPoints) < 7 then
+        for i = string.len(TotalPoints), 6 do
+            TotalPoints = TotalPoints .. "x"
+        end
+    end
+
+    local UIid = {
+        "aG",
+        "dG",
+        "cG",
+        "kG",
+        "kkG",
+        "kkkG",
+        "negative",
+        }
+
+    for i=1, 4 do
+        for v=1, 7 do
+            local Fullid = tostring(PColor..i..UIid[v])
+            Autotable.UI.setAttribute(Fullid, "image", string.sub(TotalPoints , v , v))
+        end
+    end
+
+    self.setVar("Points"..getObjectFromGUID(tempZoneGUID).UI.getAttribute("negative", "text"), Points)
+
+end
+
+--  =======================================================
+--            dealTiles
+--  =======================================================
+
+function dealTiles()                                        -- Deals tiles at the start of a round. Probably very weird code, was half asleep when I wrote this.
+   
+    UI.setAttribute("wallbuilder", "active", "false")
+
+    local Dice = 66           -- 66 = rolls 2d6 for normal wallbreaking, else rolls d4 and d17 to get a more randomized wallbreaking
+    local DiceA = 0
+    local DiceB = 0
+    local TileDice = 0
+    local WallDice = 0
+
+    if Dice == 66 then
+        DiceA = math.random(6)
+        DiceB = math.random(6)    
+        print(DiceA.." und "..DiceB.." wurden gewürfelt")
+        else
+        WallDice = math.random(4)
+        TileDice = math.random(17)
+        print("Mauer "..WallDice.." und Teil "..TileDice.." wurden ausgewürfelt")
+    end
+        
+    local ChosenWall = WallDice + DiceA + DiceB
+    local ChosenTile = TileDice + DiceA + DiceB
+
+    if ChosenWall > 4 then
+        ChosenWall = ChosenWall - 4
+        if ChosenWall > 4 then  
+            ChosenWall = ChosenWall - 4
+        end
+    end
+
+    local dealOrder = {
+        ["1"] = East,
+        ["2"] = South,
+        ["3"] = West,
+        ["4"] = North
+        }
+
+    local ChosenWallOffset = {
+        ["Green"] = 0,
+        ["Red"] = 1,
+        ["Blue"] = 2,
+        ["Yellow"] = 3
+        }
+
+    local ChosenWallTiles = {
+        ["1"] = 0,
+        ["2"] = 102,
+        ["3"] = 68,
+        ["4"] = 34
+        }
+
+    local variableWall = ChosenWall + ChosenWallOffset[Player[Seats[East]].color]
+    if variableWall > 4 then 
+        variableWall = variableWall - 4 
+    end
+
+    DiceResult = (ChosenTile * 2) -1 + ChosenWallTiles[tostring(variableWall)]
+
+    local usedTile = DiceResult
+
+-- The following code is less efficient, but does provide the visual effect of dealing each block seperately.
+
+    local HandPosition = {
+        ["Green"] = {x=0, y=3.4, z=-23},
+        ["Red"] = {x=23, y=3.4, z=0},
+        ["Blue"] = {x=0, y=3.4, z=23},
+        ["Yellow"] = {x=-23, y=3.4, z=0}
+        }
+
+    local HandRotation = {
+        ["Green"] = {x=0, y=180, z=180},
+        ["Red"] = {x=0, y=90, z=180},
+        ["Blue"] = {x=0, y=0, z=180},
+        ["Yellow"] = {x=0, y=270, z=180}
+        }
+
+    local waitX = 0     -- Initial delay for dealing tiles
+    local waitDelay = .4             -- Delay added with each dealt block, change if you want it faster/slower
+
+   -- First tile block
+
+    local DealtTiles = {}
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(1)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(1)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(2)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(2)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(3)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(3)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    if #Players == 4 then
+        Wait.time(function()
+            for i=1, 4 do
+                LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(4)]]].color])
+                LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(4)]]].color])
+                table.insert(DealtTiles, usedTile)
+                usedTile = usedTile + 1
+                if usedTile > 136 then
+                    usedTile = 1
+                end
+            end
+        end, waitX)
+        waitX = waitX + waitDelay
+    end
+
+   -- Second tile block
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(1)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(1)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(2)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(2)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(3)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(3)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    if #Players == 4 then
+        Wait.time(function()
+            for i=1, 4 do
+                LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(4)]]].color])
+                LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(4)]]].color])
+                table.insert(DealtTiles, usedTile)
+                usedTile = usedTile + 1
+                if usedTile > 136 then
+                    usedTile = 1
+                end
+            end
+        end, waitX)
+        waitX = waitX + waitDelay
+    end
+
+    -- Third tile block
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(1)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(1)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(2)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(2)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(3)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(3)]]].color])
+            table.insert(DealtTiles, usedTile)
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    if #Players == 4 then
+        Wait.time(function()
+            for i=1, 4 do
+            LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(4)]]].color])
+            LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(4)]]].color])
+            table.insert(DealtTiles, usedTile)
+                usedTile = usedTile + 1
+                if usedTile > 136 then
+                    usedTile = 1
+                end
+            end
+        end, waitX)
+        waitX = waitX + waitDelay
+    end
+
+    -- Single tile pulls
+
+    Wait.time(function()
+        LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(1)]]].color])
+        LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(1)]]].color])
+        table.insert(DealtTiles, usedTile)
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(2)]]].color])
+        LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(2)]]].color])
+        table.insert(DealtTiles, usedTile)
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+        LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(3)]]].color])
+        LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(3)]]].color])
+        table.insert(DealtTiles, usedTile)
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    if #Players == 4 then
+        Wait.time(function()
+        LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(4)]]].color])
+        LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(4)]]].color])
+        table.insert(DealtTiles, usedTile)
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+        end, waitX)
+        waitX = waitX + waitDelay
+    end
+
+    Wait.time(function()
+        LoggedTilesComplete[usedTile].setPositionSmooth(HandPosition[Player[Seats[dealOrder[tostring(1)]]].color])
+        LoggedTilesComplete[usedTile].setRotation(HandRotation[Player[Seats[dealOrder[tostring(1)]]].color])
+        table.insert(DealtTiles, usedTile)   
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+    end, waitX)
+
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+
+        local missingTiles = 136 - (#Players*13+2)
+        if #Players == 3 then
+            DoraOffset = 9
+            elseif #Players == 4 then
+            DoraOffset = 5
+        end
+        missingTiles = missingTiles - DoraOffset
+        for i=1, missingTiles do
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+        LoggedTilesComplete[usedTile].flip()
+        usedTile = DiceResult + 122
+        if usedTile > 136 then
+            usedTile = usedTile - 136
+        end
+        local WanpaiXOffset = 0
+        local WanpaiZOffset = 0
+        if usedTile < 35 then
+            WanpaiXOffset = -1
+            WanpaiZOffset = 0
+            else
+            if usedTile < 69 then
+                WanpaiXOffset = 0
+                WanpaiZOffset = 1
+                else
+                if usedTile < 103 then
+                    WanpaiXOffset = 1
+                    WanpaiZOffset = 0
+                    else
+                    WanpaiXOffset = 0
+                    WanpaiZOffset = -1
+                end
+            end
+        end
+        for i=1, 14 do
+            local Wanpai = LoggedTilesComplete[usedTile]
+            local WanpaiPosition = Wanpai.getPosition()
+            Wanpai.setPosition({x = WanpaiPosition.x + (0.9*WanpaiXOffset), y = WanpaiPosition.y + 0.2, z = WanpaiPosition.z + (0.9*WanpaiZOffset)})
+            usedTile = usedTile + 1
+            if usedTile > 136 then
+                usedTile = 1
+            end
+        end
+
+                
+    end, waitX)
+    waitX = waitX + waitDelay
+
+    Wait.time(function()
+            for k, v in pairs(DealtTiles) do 
+                LoggedTilesComplete[v].flip()
+            end
+            LoggedTilesComplete = {}
+            UI.setAttribute("wallbuilder", "active", "true")
+        end, waitX)
+
+--[=====[
+
+-- The following code is more efficient and also deals the correct tiles, but doesn't provide the visual effect of dealing each block seperately.
+-- If you prefer this, place the annotation markers around the other function.
+
+    for q = 1, 3 do
+        for v=1, #Players do
+            for i=1, 4 do
+                tileBag.putObject(LoggedTilesComplete[usedTile])
+                usedTile = usedTile + 1
+                if usedTile > 136 then
+                    usedTile = 1
+                end
+                tileBag.deal(4, Player[Seats[dealOrder[tostring(v)]]].color)
+            end
+        end
+    end
+
+    for v=1, #Players do
+        tileBag.putObject(LoggedTilesComplete[usedTile])
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+                usedTile = 1
+            end  
+        tileBag.deal(1, Player[Seats[dealOrder[tostring(v)]]].color)
+    end
+        tileBag.putObject(LoggedTilesComplete[usedTile])
+    usedTile = usedTile + 1
+    if usedTile > 136 then
+        usedTile = 1
+    end    
+    tileBag.deal(1, Player[Seats[dealOrder[tostring(1)]]].color)
+        local missingTiles = 136 - (#Players*13+2)
+        if #Players == 3 then
+        DoraOffset = 5
+        elseif #Players == 4 then
+        DoraOffset = 9
+    end
+        missingTiles = missingTiles - DoraOffset
+        for i=1, missingTiles do
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+    end
+        LoggedTilesComplete[usedTile].flip()
+        usedTile = DiceResult + 122
+    if usedTile > 136 then
+        usedTile = usedTile - 136
+    end
+        local WanpaiXOffset = 0
+    local WanpaiZOffset = 0
+        if usedTile < 35 then
+        WanpaiXOffset = -1
+        WanpaiZOffset = 0
+        else
+        if usedTile < 69 then
+            WanpaiXOffset = 0
+            WanpaiZOffset = 1
+            else
+            if usedTile < 103 then
+                WanpaiXOffset = 1
+                WanpaiZOffset = 0
+                else
+                WanpaiXOffset = 0
+                WanpaiZOffset = -1
+            end
+        end
+    end
+        for i=1, 14 do
+        local Wanpai = LoggedTilesComplete[usedTile]
+        local WanpaiPosition = Wanpai.getPosition()
+        Wanpai.setPosition({x = WanpaiPosition.x + (0.9*WanpaiXOffset), y = WanpaiPosition.y + 0.2, z = WanpaiPosition.z + (0.9*WanpaiZOffset)})
+        usedTile = usedTile + 1
+        if usedTile > 136 then
+            usedTile = 1
+        end
+    end
+
+    LoggedTilesComplete = {}
+    UI.setAttribute("wallbuilder", "active", "true")
+
+--]=====]
+
+end
+
+--  =======================================================
+--            makeOneWall
+--  =======================================================
+
+function makeOneWall(order, baseline, tileRotation)                 -- Builds one wall (Duh.) Modified version of eviljuzu's original script.
+
+    local yWallOffset = 1
+
+    for i = 1, h do                                                 -- i is the next spot in the wall where a tile gets placed
+                                                                    -- h is the end of a wall, will be calculated later
+
+
+        for yPosition = -2.144,-1.144 do                            -- Negative to reverse build order. Needed to log the tiles in pull-order.
+            local xzPosition = -8.1 + 0.9*i + k                     -- Defines either the x and z position, which one is used will be determined with "order" during the building of the wall
+                                                                    -- k is the offset to make bigger walls not overlap and smaller walls not too far apart, will be calculated later
+            local parameters = {}
+            parameters.position = {}
+            parameters.position[order[1]] = xzPosition * j + c      -- j is used to swap the beginning and end of certain walls to prevent them from growing into each other
+                                                                    -- c is used to place remaining tiles in the bag at the end of one wall at the end of the makeWalls function
+            parameters.position[order[2]] = -yPosition
+            parameters.position[order[3]] = baseline                -- Either the x or z Position, depending on the wall. Will be determined with "order"
+            parameters.rotation = tileRotation
+            parameters.callback = nil
+            parameters.params = nil
+            local currentTile = tileBag.takeObject(parameters)      -- Gets the current tile and inserts it into a table. Enables getting the correct tiles while breaking the wall
+            LoggedTiles[iWallOffset][yWallOffset] = currentTile
+            b =  xzPosition                                         -- b is the position at the end of the last placed tile, it will be used for remaining tiles in the tile bag
+
+            yWallOffset = yWallOffset + 1
+
+            if #tileBag.getObjects() == 0 then                      -- Prevent error from showing up with more/less tiles than 136
+                break
+            end
+        end               -- yPosition loop
+
+        if #tileBag.getObjects() == 0 then                          -- Prevent error from showing up with more/less tiles than 136
+            break
+        end  
+    end                -- xzPosition loop
+end
+                    
+--  =======================================================
+--            makeWalls
+--  =======================================================
+
+function makeWalls(player, altClick)                                -- Sets up everything needed for a game. Heavily modified version of eviljuzu's original script.
+
+    LoggedTiles = {
+        ["South"] = {},
+        ["West"] = {},
+        ["North"] = {},
+        ["East"] = {}
+        }
+
+    getObjectFromGUID("20d422").removeTag("MahjongTile")
+    getObjectFromGUID("0d3dc5").removeTag("MahjongTile")
+    getObjectFromGUID("afc63d").removeTag("MahjongTile")
+    getObjectFromGUID("27a1c2").removeTag("MahjongTile")
+
+    if altClick == "-3" then                                        -- Middle click starts a new game                  
+        newGame = 1
+        random = randomLoad
+    end
+
+    if altClick == "-1" then                                        -- Left click passes the East-seat
+        random = 0
+        Round = Round + 1
+        East = East + 1
+        Honba = 0
+    end
+
+    if altClick == "-2" then                                        -- Right click keeps the wind and adds a Honba
+        random = 0
+        Honba = Honba + 1
+    end
+
+    UI.setAttribute("wallbuilder", "active", "false")               -- Disables the "New Walls" button to prevent spamming which may duplicate tiles
+
+    tileBag.call('cleanUp')                                         -- Collects all items with the tag "MahjongTile"
+ 
+    g = #tileBag.getObjects()                                       -- g is the number of collected tiles
+    printToAll("Mauern mit "..g.." Teilen gebaut")                  -- This sends a message to the chat to help identifying counting mistakes during the setup
+    h = g/8             -- h is the length of a wall
+
+    if math.ceil(h) < 17 then                                       -- Prevents smaller walls from limiting the space in the middle too much
+        if math.ceil(h) < 14 then                                   -- Sets k to a number that makes the spacing between walls neither too small nor to big
+            k = 3 else
+            k = 17 - math.ceil(h)
+        end 
+        else k = 0
+    end
+
+    tileBag.shuffle()                                               -- Randomizes the tiles in the tile bag
+
+    local baseline = 9 - k                                          -- Define how close to the edge the tiles are in.
+                                                                    -- The larger the number, the closer the tiles are to the edges of the table. 
+                                                                    -- Change this only by multiples of 0.9 to snap to grid correctly
+    c = 0                                                           -- Sets c to 0 because new walls don't need the offset it provides
+
+    --[[Here the building of the walls starts--]]                   -- During this process various coordinates will be switched from positive to negative. This is necessary to make the walls grow in the area of x,z; -x,z; -x,-z; x,-z
+                                                                    -- Names of the walls do not represent actual seat-position
+    --[[South wall --]]
+    j=-1                                                            -- Turns around the wall to prevent it from growing into another wall
+    local southOrder = {1,2,3}                                      -- Order is always x,y,z. The numbers were defined in the makeOneWall function, this defines wether xzPosition or baseline is used for the x or z coordinate
+    local southRotation = {180,0,0}                                 -- Rotation of the tiles of this wall
+    iWallOffset = "South"
+    makeOneWall(southOrder,-baseline,southRotation)
+
+    --[[West wall --]]
+    j=1
+    local westOrder = {3,2,1}
+    local westRotation = {180,90,0}
+    iWallOffset = "West"
+    makeOneWall(westOrder,-baseline,westRotation)
+
+    --[[North wall --]]
+    j=1
+    local northOrder = {1,2,3}
+    local northRotation = {180,180,0}
+    iWallOffset = "North"
+    makeOneWall(northOrder,baseline,northRotation)
+
+    --[[East wall --]]
+    j=-1
+    local eastOrder = {3,2,1}
+    local eastRotation = {180,270,0}
+    iWallOffset = "East"
+    makeOneWall(eastOrder,baseline,eastRotation)
+
+    if #tileBag.getObjects() > 0 then                               -- Since the script can't handle every number of tiles, some may get stuck in the tile bag
+                                                                    -- This checks for those tiles and places them at the end of the east wall, will at most be 7 tiles
+        --[[East wall part 2 --]]
+        j=-1
+        c=(math.ceil(h)-1)*0.9*-1                                   -- c is calculated to find the end of the wall and place the remaining tiles starting in the next slot
+        local eastOrder = {3,2,1}
+        local eastRotation = {180,270,0}
+        makeOneWall(eastOrder,baseline,eastRotation)
+    end
+
+    TurnsAndSeats()
+    UpdateScore()
+
+    getObjectFromGUID("20d422").addTag("MahjongTile")
+    getObjectFromGUID("0d3dc5").addTag("MahjongTile")
+    getObjectFromGUID("afc63d").addTag("MahjongTile")
+    getObjectFromGUID("27a1c2").addTag("MahjongTile")
+
+    LoggedTilesComplete = {}
+
+    for k,v in pairs(LoggedTiles["South"]) do
+        table.insert(LoggedTilesComplete, v)
+    end
+
+    for k,v in pairs(LoggedTiles["West"]) do
+        table.insert(LoggedTilesComplete, v)
+    end
+
+    for k,v in pairs(LoggedTiles["North"]) do
+        table.insert(LoggedTilesComplete, v)
+    end
+
+    for k,v in pairs(LoggedTiles["East"]) do
+        table.insert(LoggedTilesComplete, v)
+    end
+
+    LoggedTiles = {
+        ["South"] = {},
+        ["West"] = {},
+        ["North"] = {},
+        ["East"] = {}
+        }
+
+    Wait.time(function()
+        UI.setAttribute("wallbuilder", "active", "true")
+    end, 2)
+
+    if automate == 1 then                                         -- deal tiles as soon as the wall has been built
+        Wait.time(function()
+            dealTiles()
+        end,2)
+    end
+end
+
+--  =======================================================
+--            TurnsAndSeats
+--  =======================================================
+
+function TurnsAndSeats()                                         -- Prepares seats in a new game, sets points and deals Tenbou
+
+    if newGame == 1 then
+
+        Players = getSeatedPlayers()
+
+        for i=1, #Players do
+            local screen = tostring(Players[i].."Screen")
+            Autotable.UI.hide(screen)
+        end
+
+        oldPointsG = basePoints
+        oldPointsR = basePoints
+        oldPointsB = basePoints
+        oldPointsY = basePoints
+        PointsGreen = basePoints
+        PointsRed = basePoints
+        PointsBlue = basePoints
+        PointsYellow = basePoints
+
+        for i = 1, 5 do
+            TenbouBag[TenbouBag[i]].call("cleanUp")
+        end
+
+        Wait.frames(function()                                  -- Waiting is necessary because the function processes faster than the game
+            TenbouBag["10000"].deal(1)                          -- Deals Tenbou worth 25000 points
+            TenbouBag["5000"].deal(2)
+            TenbouBag["1000"].deal(4)
+            TenbouBag["100"].deal(10)
+            Wait.frames(function()                              -- Same here
+                for _,color in pairs(Players) do
+                        SortPlayer = color
+                    sortTenbou()
+                end
+            end, 28)
+        end, 28)
+
+        oldEast = not East
+    
+        Turns.enable = false
+
+        Seats = {}                                              -- Creates an empty table
+
+        if Player["Green"].seated then                          -- Adds Player[color] to the table if seated, assigns value
+            table.insert(Seats, "Green")
+        end
+
+        if Player["Red"].seated then
+            table.insert(Seats, "Red")
+        end
+
+        if Player["Blue"].seated then
+            table.insert(Seats, "Blue")
+        end   
+
+        if Player["Yellow"].seated then
+            table.insert(Seats, "Yellow")
+        end
+    end
+
+    UpdateSeatsAndRounds()
+
+end
+
+--  =======================================================
+--            UpdateSeatsAndRounds
+--  =======================================================
+
+function UpdateSeatsAndRounds()                             -- Seats players, rotates the wind and adds Honba
+
+    if newGame == 1 then
+        roundWind = "東"
+        Round = 1
+        Honba = 0
+        newGame = 0
+            if random == 1 then
+                East = math.random(#Players)                -- Assigns a random number to "Dealer"
+                random = 0                                  -- Sets random to 0, so that this function can be used in round 2 onwards
+                else
+                East = 1
+            end
+        else
+    
+        if Honba > 8 then
+            Honba = 0
+            Round = Round + 1
+            East = East + 1
+            if East > #Players then
+                East = East - #Players
+            end
+        end
+
+        if East > #Players then
+            East = East - #Players
+        end  
+    end
+
+    South = East + 1                                          -- South plays second, thus East+1
+    if South > #Players then                                  -- If "South" isn't in the array of players, restart from 1 in "Seats"
+        South = South - #Players
+    end
+           
+    West = East + 2
+    if West > #Players then
+       West = West - #Players
+    end
+
+    if Round == #Players+1 then
+        Round = 1
+            if roundWind == "東" then
+                roundWind = "南"
+                elseif roundWind == "南" then
+                roundWind = "西"
+                elseif roundWind == "西" then
+                roundWind = "北"
+                elseif roundWind == "北" then
+                if useDragonRounds == 1 then
+                    roundWind = "白"
+                    else
+                    roundWind = "東"
+                end
+                elseif roundWind == "白"
+                then roundWind = "發"
+                elseif roundWind == "發"
+                then roundWind = "中"
+                elseif roundWind == "中"
+                then roundWind = "東"
+            end
+    end
+
+    printToAll(roundWind.." "..Round.."局".." "..Honba.."本場")
+
+    printToAll(Player[Seats[East]].steam_name .. " ist Osten")
+    printToAll(Player[Seats[South]].steam_name .. " ist Süden")
+    printToAll(Player[Seats[West]].steam_name .. " ist Westen")
+
+    windUIOrder = {
+        ["Blue"] = 1,
+        ["Yellow"] = 2,
+        ["Green"] = 3,
+        ["Red"] = 4, 
+        }
+
+    WindEast = tostring("Wind"..windUIOrder[Seats[East]])
+    WindSouth = tostring("Wind"..windUIOrder[Seats[South]])
+    WindWest = tostring("Wind"..windUIOrder[Seats[West]])
+
+    tileBag.UI.setAttribute("Wind1", "image", "emptyWind")
+    tileBag.UI.setAttribute("Wind2", "image", "emptyWind")
+    tileBag.UI.setAttribute("Wind3", "image", "emptyWind")
+    tileBag.UI.setAttribute("Wind4", "image", "emptyWind")
+
+    tileBag.UI.setAttribute(WindEast, "image", "Ton")
+    tileBag.UI.setAttribute(WindSouth, "image", "Nan")
+    tileBag.UI.setAttribute(WindWest, "image", "Shaa")
+
+    if #Players == 4 then
+        North = East + 3
+        if North > #Players then 
+            North = North - #Players
+        end
+
+        printToAll(Player[Seats[North]].steam_name .. " ist Norden")
+        WindNorth = tostring("Wind"..windUIOrder[Seats[North]])
+        tileBag.UI.setAttribute(WindNorth, "image", "Pei")
+    end
+
+    printToAll("------------------")
+
+    Turns.enable = true
+    Turns.type = 2
+    Turns.order = {"Green", "Red", "Blue", "Yellow"}
+    Turns.turn_color = Seats[East]
+
+oldEast = East
+
+end
+
+--  =======================================================
+--            UpdateScore
+--  =======================================================
+
+function UpdateScore()                                      -- Updates the scores displayed in the notes
+
+    GainG = PointsGreen-oldPointsG
+    GainR = PointsRed-oldPointsR
+    GainB = PointsBlue-oldPointsB
+    GainY = PointsYellow-oldPointsY
+
+    if GainR >= 0 then
+        positiveR = "+"
+        else positiveR = ""
+    end
+
+    if GainB >= 0 then 
+        positiveB = "+"
+        else positiveB = ""
+    end
+
+    if GainY >= 0 then 
+        positiveY = "+"
+        else positiveY = ""
+    end
+
+    if GainG >= 0 then 
+        positiveG = "+"
+        else positiveG = ""
+    end
+
+--  =======================================================
+--            getOrderedPlayers
+--  =======================================================
+
+    function getOrderedPlayers()                            -- Inside UpdateScore, not needed anywhere else for now. Should probably change that.
+        local scores = scores
+        local colorhex = colorhex
+        local mergedTable = {}
+        local returnTbl = {}
+
+        for _, player in ipairs(Players) do
+            table.insert(mergedTable, {player = player, score = tonumber(scores[player])})
+        end
+
+        table.sort(mergedTable, function(a, b) return a.score > b.score end)
+
+        for index, tbl in ipairs(mergedTable) do
+            table.insert(returnTbl, tbl.player)
+        end
+
+        return returnTbl
+    end
+
+--  =======================================================
+--     Continuation of UpdateScore 
+--  =======================================================
+
+    colorhex = {                                                -- Various settings for the notes from here on
+        ["Green"] = "[00ff00]",
+        ["Blue"] = "[0000ff]",
+        ["Red"] = "[ff0000]",
+        ["Yellow"] = "[ffff00]"
+        }
+
+    difference = {
+        ["Green"] = GainG,
+        ["Blue"] = GainB,
+        ["Red"] = GainR,
+        ["Yellow"] = GainY
+        }
+
+    scores = {
+        ["Green"] = PointsGreen,
+        ["Blue"] = PointsBlue,
+        ["Red"] = PointsRed,
+        ["Yellow"] = PointsYellow
+        }
+
+    positive = {
+        ["Green"] = positiveG,
+        ["Blue"] = positiveB,
+        ["Red"] = positiveR,
+        ["Yellow"] = positiveY
+        }
+
+    currentNotes = ""
+    for index, color in ipairs(getOrderedPlayers()) do
+        setNotes(
+            '\n'..'\n'..
+            currentNotes..
+            colorhex[color]..
+            Player[color].steam_name..
+            "[ffffff]"..
+            " "..
+            scores[color]..
+            " ("..
+            positive[color]..
+            difference[color]..
+            ")"..
+            '\n'
+            ) 
+        currentNotes = getNotes()
+    end
+
+    oldPointsG = PointsGreen
+    oldPointsR = PointsRed
+    oldPointsB = PointsBlue
+    oldPointsY = PointsYellow
+
+    currentNotes = getNotes()
+
+    setNotes(
+        currentNotes..
+        '\n'..'\n'..
+        roundWind.."  ".. Round.. "局  "..Honba.."本場"
+        )
+end
+
+--  =======================================================
+--            VisibilityUI 
+--  =======================================================
+
+function VisibilityUI(player, _, idValue)                                   -- Adds or removes the clicking player from the visibility of a relevant UI
+    newVisID = tostring(idValue.."UI")                   
+    oldVisCol = UI.getAttribute(newVisID, "visibility")
+    newVisCol = UI.getAttribute(newVisID, "visibility")
+    if oldVisCol == tostring(newVisCol:gsub("|"..player.color,"")) then     -- Checks if the player's color is in the attribute already
+        newVisCol = tostring(oldVisCol.."|"..player.color)                  -- If it is, it gets deleted
+        else
+        newVisCol = tostring(newVisCol:gsub("|"..player.color,""))          -- If not, it gets added
+    end 
+    UI.setAttribute(newVisID,"visibility", newVisCol)                       -- Updates the visibility
+end
+
+--  =======================================================
+--            printhand
+--  =======================================================
+
+function printhand()                                                        -- Writes the current hands into the notebook. I'm probably the only one that uses this.
+
+    Zones = {  
+        ["Green"] = 'f0100c',
+        ["Blue"] = 'fe4177',
+        ["Red"] = '0e39a8',
+        ["Yellow"] = '49220f'
+        }
+
+    parameters = {
+        title = "Hands", 
+        index = 0,
+        body = ""
+        }
+
+    Notes.editNotebookTab(parameters)
+
+    for _, color in ipairs(Players) do
+        player = Player[color]
+        string = Player[color].steam_name .. ": "
+        handObjects = player.getHandObjects()
+
+        playerzone = Zones[color]
+        string2 = ""
+        zone = getObjectFromGUID(playerzone)
+        zoneobjects = zone.getObjects()
+
+        for index, obj in ipairs(handObjects) do
+            name = obj.getGMNotes()
+            string = string .. name
+        end
+
+        for index, obj in ipairs(zoneobjects) do
+            name2 = obj.getGMNotes()
+            string2 = string2 .. name2
+        end
+
+        if string2 != "" then 
+            string2 = ".."..string2
+        end
+
+        string = string..string2
+
+        oldNotebook = getNotebookTabs()
+        parameters = {
+                    title = "Hands",
+                    index = 0,
+                    body = oldNotebook[1].body..'\n'..string
+                    }
+        Notes.editNotebookTab(parameters)
+    end
+    printToAll("Hände wurden gespeichert")
+end 
+
+
+--  ======================================================================
+--            Hand sorting scripts
+--  ======================================================================
+
+-- Sort Hand Tool, slightly modified version of Xtal Lattice's original script.
+-- This tool lets the calling player sort the cards in their hand by triggering via scripting hotkey.
+-- This tool can be customized for a specific player by setting the Description to a valid player color (White, Brown, Red, Orange, Yellow, Green, Teal, Blue, Purple, Pink, Grey, Black).
+
+
+--  ======================================================================
+--            Configuration
+--  ======================================================================
+
+
+-- This is the way suits (i.e. values in the cards' Description field) are grouped
+-- 0:  Ignore suits
+-- 1:  All suits are together
+-- 2:  All card numbers are together
+groupSuitMode = 1
+
+-- This is the reference order of card values and suits (as you want them to appear from left to right).  Values are labeled in the card Name, suits are labeled in the card Description.
+-- NOTE:  Several example sort orders are shown below.  Only enable ONE set (whether from the included examples, or a custom one of your own).
+-- If you have no suit names (i.e. Description field), just leave this as-is and set groupSuitMode = 0
+
+-- New-Deck Order
+refCardOrder = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "Ton", "Nan", "Shaa", "Pei", "Haku", "Hatsu", "Chun","Pin","Man","Sou","Suit","Wind","Dragon","Flower","Honor","19","147","258","369"," ",}
+refSuitOrder = {"Pin", "Man", "Sou", "Wind", "Dragon", "Season","Flower","Emporer","Empress","Joker"," "}
+--[=====[ 
+Those vietnamese joker tiles made this a bit more complicated than it needs to be
+I couldn't figure out how to sort every tile not fitting any "Card" or "Suit" to the end, so this is the result
+The easy solution would be to replace the description of the tiles with " ", but since having those is very helpful for all the restricted jokers, I did it this way.
+-Gray
+--]=====]
+
+--  ======================================================================
+--            End Configuration
+--  ======================================================================
+
+-- Reverse Index of refCardOrder
+-- Used as a high performance method (i.e. no iteration) to find the index of a given value, such as:
+-- return refCardOrderIndex["Seven"]
+local refCardOrderIndex={}
+for k,v in pairs(refCardOrder) do
+    refCardOrderIndex[v]=k
+end
+
+-- Reverse Index of refSuitOrder
+-- Used as a high performance method (i.e. no iteration) to find the index of a given value, such as:
+-- return refSuitOrderIndex["Diamond"]
+local refSuitOrderIndex={}
+for k,v in pairs(refSuitOrder) do
+    refSuitOrderIndex[v]=k
+end
+
+-- Table of all valid player colors.
+playerColorList = {'Red', 'Yellow', 'Green', 'Blue',}
+
+-- Sort the calling player's hand.
+function sortHand(player)
+    
+    -- Table to store the sortable list of cards present in the hand.
+    local cards = {}
+    
+    -- Table to store the list of card positions in the hand.
+    local handPos = {}
+    
+    -- Grab the list of cards in the hand.  We'll use this to populate our tables.
+    handObjects = player.getHandObjects()    
+    
+    -- Flag to indicate whether the error handling routine found an improperly named card.
+    ErrorMode = 0
+
+    -- Populate both tables.
+    for i, j in pairs(handObjects) do
+        
+        local cardNumber = j.getName()
+        local cardSuit = j.getDescription()
+        
+        -- Error Handling
+        if cardNumber == '' or (groupSuitMode != 0 and cardSuit == '') then
+            
+            broadcastToColor("[00ff00]Sort Hand Tool[-]: Tile missing name or needed description.", player_color, {1,1,1})
+            log(j, 'Tile with missing name or needed description:')
+            ErrorMode = 1
+            return
+            
+        end
+        
+        table.insert(cards, {j, j.getName()})
+        table.insert(handPos, j.getPosition())
+    
+    end
+    
+    if ErrorMode == 1 then
+        return
+    end    
+    
+    -- Sort the list of cards.
+    table.sort(cards, sortLogic)
+
+    -- Take the sorted list of cards and apply the list of card positions in order to physically rearrange them.
+    for i, j in ipairs(cards) do
+    
+        j[1].setPosition(handPos[i])
+    
+    end
+end
+
+-- Comparison function used by table.sort()
+-- The parameters supplied by table.sort() are tables, where parameter[1] is the object reference, and parameter[2] is the object Name.
+function sortLogic(card1, card2)
+    
+    -- Grab the relevant information for both cards.
+    card1Number = card1[1].getName()
+    card1NumberIndex = refCardOrderIndex[card1Number]
+    card1Suit = card1[1].getDescription()
+    card1SuitIndex = refSuitOrderIndex[card1Suit]
+    
+    card2Number = card2[1].getName()
+    card2NumberIndex = refCardOrderIndex[card2Number]
+    card2Suit = card2[1].getDescription()
+    card2SuitIndex = refSuitOrderIndex[card2Suit]
+
+
+    -- log(card1Number, 'card1Number:')
+    -- log(card1NumberIndex, 'card1NumberIndex:')
+    -- log(card1Suit, 'card1Suit:')
+    -- log(card1SuitIndex, 'card1SuitIndex:')
+
+
+    -- 0: Ignore all suits.
+    if groupSuitMode == 0 then
+        
+        return card1NumberIndex < card2NumberIndex
+        
+    end
+
+    -- 1: All suits are together
+    if groupSuitMode == 1 then
+        if card1Suit == card2Suit then
+            return card1NumberIndex < card2NumberIndex
+        else
+            return card1SuitIndex < card2SuitIndex
+        end        
+    end
+
+    -- 2: All card numbers are together
+    if groupSuitMode == 2 then
+        if card1Number == card2Number then
+            return card1SuitIndex < card2SuitIndex
+        else            
+            return card1NumberIndex < card2NumberIndex
+        end        
+    end
+end
+
+-- Function to determine whether a specified value/object exists in a table.
+function tableContains(tableSpecified, element)
+    
+    for _, value in pairs(tableSpecified) do
+        if value == element then
+            return true
+        end
+    end
+    return false
+end
