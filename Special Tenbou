@@ -1,0 +1,6 @@
+function cleanUp()
+AllObjects = getObjectsWithTag("Tenbou")
+for _,Sticks in ipairs(AllObjects) do
+self.putObject(Tiles)
+end
+end
